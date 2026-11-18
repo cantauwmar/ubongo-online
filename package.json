@@ -1,0 +1,21 @@
+{
+  "name": "ubongo-online-duel",
+  "version": "1.0.0",
+  "description": "Ubongo Puzzle Android & Web-App mit Sanduhr-Timer und WebRTC P2P Online-Multiplayer",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "cap:init": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "apk:debug": "cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "peerjs": "^1.5.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}

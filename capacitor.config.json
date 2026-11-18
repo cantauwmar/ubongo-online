@@ -1,0 +1,15 @@
+{
+  "appId": "com.ubongo.onlineduel",
+  "appName": "Ubongo Online",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#1a0f0a"
+    }
+  }
+}

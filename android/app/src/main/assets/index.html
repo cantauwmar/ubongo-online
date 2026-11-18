@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#141311" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>UBONGO! Online Speed-Table</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+</head>
+<body>
+  <div id="confetti-layer"></div>
+  <div id="app-toast" class="app-toast" role="status" aria-live="polite"></div>
+
+  <main class="app-shell">
+    <!-- ===================================================================
+         1. TOP TOURNAMENT HEADER WITH BRASS HOURGLASS & TABULAR COUNTDOWN
+         =================================================================== -->
+    <header class="tournament-header">
+      <div class="brand-cluster">
+        <svg class="brand-mark-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="2" y="2" width="36" height="36" rx="9" fill="#EFECE4" stroke="#D97706" stroke-width="2.5"/>
+          <rect x="7" y="7" width="12" height="12" rx="3" fill="#DC2626"/>
+          <rect x="7" y="21" width="12" height="12" rx="3" fill="#DC2626"/>
+          <rect x="21" y="21" width="12" height="12" rx="3" fill="#DC2626"/>
+          <rect x="21" y="7" width="12" height="12" rx="3" fill="#0D9488"/>
+        </svg>
+        <div class="brand-text-wrap">
+          <h1 class="brand-title">UBONGO! <span class="hide-narrow">Speed-Table</span></h1>
+          <div id="game-round-badge" class="round-meta-line">Runde 1/5</div>
+        </div>
+      </div>
+
+      <!-- Brass SVG Hourglass & Tabular Countdown -->
+      <div id="hourglass-wrapper" class="hourglass-cluster">
+        <svg class="hourglass-svg" viewBox="0 0 64 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <clipPath id="clip-top-bulb">
+              <path d="M10,8 L54,8 L35,42 L29,42 Z" />
+            </clipPath>
+            <clipPath id="clip-bottom-bulb">
+              <path d="M29,46 L35,46 L54,80 L10,80 Z" />
+            </clipPath>
+          </defs>
+          <rect x="6" y="2" width="52" height="6" rx="3" fill="#d97706" stroke="#fde68a" stroke-width="1.5" />
+          <rect x="6" y="80" width="52" height="6" rx="3" fill="#d97706" stroke="#fde68a" stroke-width="1.5" />
+          <path d="M10,8 L54,8 L35,42 L54,80 L10,80 L29,42 Z" fill="rgba(255,255,255,0.06)" stroke="#fbbf24" stroke-width="2.5" stroke-linejoin="round" />
+          <g clip-path="url(#clip-top-bulb)">
+            <rect id="hourglass-sand-top" x="8" y="8" width="48" height="35" fill="#f59e0b" />
+          </g>
+          <line id="hourglass-stream" x1="32" y1="42" x2="32" y2="80" stroke="#fde047" stroke-width="2.5" stroke-dasharray="3 3">
+            <animate attributeName="stroke-dashoffset" from="6" to="0" dur="0.25s" repeatCount="indefinite" />
+          </line>
+          <g clip-path="url(#clip-bottom-bulb)">
+            <rect id="hourglass-sand-bottom" x="8" y="46" width="48" height="35" fill="#f59e0b" />
+          </g>
+        </svg>
+        <span id="hourglass-time-text" class="hourglass-time">60s</span>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-new-board" type="button" class="btn btn-emerald" title="Neue Runde starten">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Neu<span class="hide-narrow">e Tafel</span></span>
+        </button>
+        <button id="btn-sound-toggle" type="button" class="btn btn-secondary" style="padding: 7px 9px;" aria-label="Ton umschalten" title="Ton an/aus">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================================================================
+         2. LIVE RE-RANKING TOURNAMENT GATE-BOARD (SAVILLE HUE-BLOCK STRIP)
+         =================================================================== -->
+    <section id="live-opponents-bar" class="live-gate-board" aria-label="Live-Rangliste und Stein-Fortschritt"></section>
+
+    <!-- Round / Match Summary Banner (Appears between rounds or on win) -->
+    <section id="round-summary-banner" class="round-overlay-banner" aria-live="polite">
+      <div class="slab-heading">
+        <span id="summary-round-title">Runde abgeschlossen</span>
+        <div style="display: flex; gap: 6px;">
+          <button id="btn-next-round" type="button" class="btn btn-emerald">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Nächste Runde</span>
+          </button>
+        </div>
+      </div>
+      <div id="summary-standings-list"></div>
+    </section>
+
+    <!-- ===================================================================
+         3. MAIN TOURNAMENT WORKSPACE: RECESSED IVORY WELL + HAND DOCK & P2P TICKET
+         =================================================================== -->
+    <div class="speed-table-grid">
+      <!-- Left / Top: Recessed Warm Ivory Puzzle Well (#EFECE4) -->
+      <section class="ivory-well-frame" aria-label="Ubongo Legetafel">
+        <div class="well-top-bar">
+          <div class="well-title-group">
+            <h2 class="well-heading">Legetafel</h2>
+            <div class="well-Quick-pills" role="group" aria-label="Schwierigkeit wählen">
+              <button type="button" class="pill-btn" data-difficulty="3">3 Teile</button>
+              <button type="button" class="pill-btn active" data-difficulty="4">4 Teile</button>
+              <button type="button" class="pill-btn" data-difficulty="5">5 Teile</button>
+            </div>
+          </div>
+
+          <div class="well-Quick-pills" role="group" aria-label="Sanduhr-Zeit wählen">
+            <button type="button" class="pill-btn" data-timelimit="30">30s</button>
+            <button type="button" class="pill-btn active" data-timelimit="60">60s</button>
+            <button type="button" class="pill-btn" data-timelimit="90">90s</button>
+          </div>
+        </div>
+
+        <div class="ivory-diecut-well">
+          <div id="ubongo-board" class="ubongo-board"></div>
+        </div>
+
+        <div class="well-caption-bar">
+          <span class="gesture-hint-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span>Doppeltipp = Spiegeln</span>
+          </span>
+          <span class="gesture-hint-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+            <span>2-Finger = 90° Drehen</span>
+          </span>
+        </div>
+      </section>
+
+      <!-- Right / Bottom: Gesture Controls, Dealt Original Pieces & Perforated P2P Ticket -->
+      <div class="control-and-dock-col">
+        <!-- Gesture & Direct Manipulation Toolbar -->
+        <div class="transform-toolbar">
+          <button id="btn-rotate-piece" type="button" class="btn btn-primary tool-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+            <span>90° Drehen</span>
+            <span class="tool-sub">2-Finger</span>
+          </button>
+          <button id="btn-flip-piece" type="button" class="btn btn-primary tool-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span>Spiegeln</span>
+            <span class="tool-sub">Doppeltipp</span>
+          </button>
+          <button id="btn-remove-piece" type="button" class="btn btn-secondary tool-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+            <span>Ablegen</span>
+            <span class="tool-sub">Zurück</span>
+          </button>
+          <button id="btn-hint-piece" type="button" class="btn btn-emerald tool-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+            <span>Tipp</span>
+            <span class="tool-sub">1 Stein</span>
+          </button>
+          <button id="btn-clear-board" type="button" class="btn btn-danger tool-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span>Leeren</span>
+            <span class="tool-sub">Tafel</span>
+          </button>
+        </div>
+
+        <!-- Dealt Original KOSMOS Ubongo Polyominoes Dock -->
+        <div id="piece-tray" class="piece-tray" aria-label="Deine gezogenen Ubongo-Steine"></div>
+
+        <!-- Perforated P2P Multiplayer Boarding Ticket -->
+        <section class="p2p-ticket-dock" aria-label="WebRTC P2P Multiplayer-Ticket">
+          <div class="ticket-bar-top">
+            <div class="ticket-code-cluster">
+              <span class="ticket-pass-title">P2P-Lobby</span>
+              <span id="lobby-room-code" class="ticket-room-badge">SOLO</span>
+              <span id="net-status-pill" style="font-family: var(--font-mono); font-size: 0.75rem; color: #0f5132; font-weight: 700;">Bereit</span>
+            </div>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+              <button id="btn-create-room" type="button" class="btn btn-ink">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span>P2P-Lobby &amp; Link</span>
+              </button>
+              <button id="btn-share-link" type="button" class="btn btn-primary" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <span>Link teilen</span>
+              </button>
+              <button id="btn-add-bot" type="button" class="btn btn-secondary" style="padding: 6px 9px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+                <span>+KI-Bot</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="ticket-perforation" aria-hidden="true">
+            <div class="ticket-dash-line"></div>
+          </div>
+
+          <div class="ticket-bar-bottom">
+            <div class="ticket-join-inline">
+              <input id="join-code-input" type="text" class="ticket-input" maxlength="6" placeholder="CODE" aria-label="4-stelliger Raum-Code" />
+              <button id="btn-join-room" type="button" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                <span>Beitreten</span>
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <input id="player-name-input" type="text" class="ticket-input" style="width: 112px; text-transform: none; letter-spacing: 0;" maxlength="16" placeholder="Dein Name" aria-label="Dein Spielername" />
+              <button id="btn-start-match" type="button" class="btn btn-emerald" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Match starten</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         4. ORIGINAL 12 KOSMOS UBONGO SHAPES ATLAS
+         =================================================================== -->
+    <section class="work-slab" aria-label="Originale 12 Ubongo-Stanzformen">
+      <div class="slab-heading">
+        <span>Originale 12 Ubongo-Stanzformen (KOSMOS-Satz)</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-sand);">I2 · I3 · V3 · O4 · L4 · T4 · Z4 · P5 · U5 · W5 · L5 · Y5</span>
+      </div>
+      <div id="piece-catalog-strip" class="catalog-strip"></div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const PUBLIC_PAGES_BASE_URL = 'https://cantauwmar.github.io/ubongo-online/';
+
+      /* =====================================================================
+       * ORIGINAL 12 KOSMOS UBONGO POLYOMINO SHAPES
+       * ===================================================================== */
+      const UBONGO_PIECES = [
+        { id: 'I2', code: '01', name: '2er-Domino', squares: 2, color: '#65a30d', border: '#bef264', coords: [[0, 0], [1, 0]] },
+        { id: 'I3', code: '02', name: '3er-Stab', squares: 3, color: '#eab308', border: '#fef08a', coords: [[0, 0], [1, 0], [2, 0]] },
+        { id: 'V3', code: '03', name: '3er-Winkel', squares: 3, color: '#7c3aed', border: '#ddd6fe', coords: [[0, 0], [0, 1], [1, 1]] },
+        { id: 'O4', code: '04', name: '4er-Block', squares: 4, color: '#dc2626', border: '#fecaca', coords: [[0, 0], [1, 0], [0, 1], [1, 1]] },
+        { id: 'L4', code: '05', name: '4er-Haken (L)', squares: 4, color: '#ea580c', border: '#fed7aa', coords: [[0, 0], [0, 1], [0, 2], [1, 2]] },
+        { id: 'T4', code: '06', name: '4er-Totem (T)', squares: 4, color: '#15803d', border: '#bbf7d0', coords: [[0, 0], [1, 0], [2, 0], [1, 1]] },
+        { id: 'Z4', code: '07', name: '4er-Stufe (Z)', squares: 4, color: '#0284c7', border: '#bae6fd', coords: [[0, 0], [1, 0], [1, 1], [2, 1]] },
+        { id: 'P5', code: '08', name: '5er-Schild (P)', squares: 5, color: '#9f1239', border: '#fecdd3', coords: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]] },
+        { id: 'U5', code: '09', name: '5er-Brücke (U)', squares: 5, color: '#d97706', border: '#fde68a', coords: [[0, 0], [2, 0], [0, 1], [1, 1], [2, 1]] },
+        { id: 'W5', code: '10', name: '5er-Treppe (W)', squares: 5, color: '#db2777', border: '#fbcfe8', coords: [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2]] },
+        { id: 'L5', code: '11', name: '5er-Langhaken (L)', squares: 5, color: '#1d4ed8', border: '#bfdbfe', coords: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]] },
+        { id: 'Y5', code: '12', name: '5er-Ast (Y)', squares: 5, color: '#0d9488', border: '#99f6e4', coords: [[0, 0], [0, 1], [0, 2], [0, 3], [1, 1]] }
+      ];
+
+      const EMBLEMS = [
+        {
+          id: 'lion',
+          svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3 2 3-1 1 3 2 2-1 3 1 3-3 2-2 3-4-1-4 1-2-3-3-2 1-3-1-3 2-2 1-3 3 1z"/><circle cx="10" cy="11" r="1"/><circle cx="14" cy="11" r="1"/><path d="M10 15h4"/></svg>'
+        },
+        {
+          id: 'falcon',
+          svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L4 9l3 11h10l3-11-8-6z"/><path d="M12 10v6"/><path d="M9 12l3 2 3-2"/></svg>'
+        },
+        {
+          id: 'cobra',
+          svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-4 0-7 3-7 6 0 2 2 4 4 5v4a3 3 0 0 0 6 0v-4c2-1 4-3 4-5 0-3-3-6-7-6z"/><path d="M10 8h.01"/><path d="M14 8h.01"/></svg>'
+        },
+        {
+          id: 'scarab',
+          svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13" rx="5" ry="7"/><path d="M12 6v14"/><path d="M5 9l2 2"/><path d="M19 9l-2 2"/></svg>'
+        }
+      ];
+
+      function getEmblemSVG(idOrLegacy) {
+        const found = EMBLEMS.find((e) => e.id === idOrLegacy);
+        return found ? found.svg : EMBLEMS[0].svg;
+      }
+
+      function renderGemSVG(color) {
+        return `<svg class="gem-svg-inline" viewBox="0 0 24 24" fill="${color}" stroke="#141311" stroke-width="1.5" stroke-linejoin="round"><polygon points="6 3 18 3 22 9 12 21 2 9"/></svg>`;
+      }
+
+      const GEM_TIERS = [
+        { rank: 1, name: 'Rubin', color: '#ef4444', points: 4 },
+        { rank: 2, name: 'Saphir', color: '#3b82f6', points: 3 },
+        { rank: 3, name: 'Smaragd', color: '#10b981', points: 2 },
+        { rank: 4, name: 'Bernstein', color: '#f59e0b', points: 1 }
+      ];
+
+      function normalizeCoords(coords) {
+        let minX = Infinity, minY = Infinity;
+        for (const [x, y] of coords) {
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+        }
+        return coords.map(([x, y]) => [x - minX, y - minY]).sort((a, b) => (a[1] - b[1]) || (a[0] - b[0]));
+      }
+
+      function rotateCoordsCW(coords) {
+        return normalizeCoords(coords.map(([x, y]) => [-y, x]));
+      }
+
+      function flipCoordsH(coords) {
+        return normalizeCoords(coords.map(([x, y]) => [-x, y]));
+      }
+
+      function getBounds(coords) {
+        let maxX = 0, maxY = 0;
+        for (const [x, y] of coords) {
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+        return { width: maxX + 1, height: maxY + 1 };
+      }
+
+      function transformCoords(baseCoords, rotation, flipped) {
+        let result = normalizeCoords(baseCoords);
+        if (flipped) result = flipCoordsH(result);
+        const steps = (((rotation || 0) % 4) + 4) % 4;
+        for (let i = 0; i < steps; i++) result = rotateCoordsCW(result);
+        return result;
+      }
+
+      function createPRNG(seedNumber) {
+        let a = (seedNumber >>> 0) || 123456789;
+        return function () {
+          let t = (a += 0x6D2B79F5);
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function hashSeed(seedStr, roundNumber, difficulty) {
+        const str = `${seedStr}-R${roundNumber}-D${difficulty}`;
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < str.length; i++) {
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+      }
+
+      function seededShuffle(arr, rng) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function evaluatePlacement(occupiedSet, candidateCells, maxGridSpan) {
+        for (const [cx, cy] of candidateCells) {
+          if (occupiedSet.has(`${cx},${cy}`)) return null;
+        }
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const key of occupiedSet) {
+          const [ox, oy] = key.split(',').map(Number);
+          if (ox < minX) minX = ox; if (ox > maxX) maxX = ox;
+          if (oy < minY) minY = oy; if (oy > maxY) maxY = oy;
+        }
+        for (const [cx, cy] of candidateCells) {
+          if (cx < minX) minX = cx; if (cx > maxX) maxX = cx;
+          if (cy < minY) minY = cy; if (cy > maxY) maxY = cy;
+        }
+        const width = maxX - minX + 1, height = maxY - minY + 1;
+        if (width > maxGridSpan || height > maxGridSpan) return null;
+
+        let sharedEdges = 0;
+        const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        for (const [cx, cy] of candidateCells) {
+          for (const [dx, dy] of dirs) {
+            if (occupiedSet.has(`${cx + dx},${cy + dy}`)) sharedEdges++;
+          }
+        }
+        if (sharedEdges === 0) return null;
+        return { sharedEdges, score: sharedEdges * 12 - (width * height) * 1.5 };
+      }
+
+      function generateUbongoPuzzle(seedStr, roundNumber, pieceCount) {
+        const rng = createPRNG(hashSeed(seedStr, roundNumber, pieceCount));
+        const maxSpan = pieceCount <= 3 ? 5 : pieceCount === 4 ? 6 : 7;
+        const candidatePool = pieceCount === 3 ? UBONGO_PIECES.filter((p) => p.coords.length >= 3) : [...UBONGO_PIECES];
+
+        for (let attempt = 0; attempt < 50; attempt++) {
+          const chosenPieces = seededShuffle(candidatePool, rng).slice(0, pieceCount);
+          const occupied = new Set();
+          const rawPlacements = [];
+          let success = true;
+
+          for (let idx = 0; idx < chosenPieces.length; idx++) {
+            const piece = chosenPieces[idx];
+            const rot = Math.floor(rng() * 4), flip = rng() < 0.5;
+            const shape = transformCoords(piece.coords, rot, flip);
+            if (idx === 0) {
+              for (const [x, y] of shape) occupied.add(`${x},${y}`);
+              rawPlacements.push({ pieceId: piece.id, rotation: rot, flipped: flip, cells: shape });
+            } else {
+              let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+              for (const key of occupied) {
+                const [ox, oy] = key.split(',').map(Number);
+                if (ox < minX) minX = ox; if (ox > maxX) maxX = ox;
+                if (oy < minY) minY = oy; if (oy > maxY) maxY = oy;
+              }
+              const validCandidates = [];
+              for (const tryFlip of [false, true]) {
+                for (let tryRot = 0; tryRot < 4; tryRot++) {
+                  const tryShape = transformCoords(piece.coords, tryRot, tryFlip);
+                  for (let ox = minX - 4; ox <= maxX + 4; ox++) {
+                    for (let oy = minY - 4; oy <= maxY + 4; oy++) {
+                      const shifted = tryShape.map(([sx, sy]) => [sx + ox, sy + oy]);
+                      const evalRes = evaluatePlacement(occupied, shifted, maxSpan);
+                      if (evalRes && evalRes.sharedEdges >= 2) {
+                        validCandidates.push({ rotation: tryRot, flipped: tryFlip, cells: shifted, score: evalRes.score + rng() * 6 });
+                      }
+                    }
+                  }
+                }
+              }
+              if (!validCandidates.length) { success = false; break; }
+              validCandidates.sort((a, b) => b.score - a.score);
+              const topPick = validCandidates[Math.floor(rng() * Math.min(5, validCandidates.length))];
+              for (const [cx, cy] of topPick.cells) occupied.add(`${cx},${cy}`);
+              rawPlacements.push({ pieceId: piece.id, rotation: topPick.rotation, flipped: topPick.flipped, cells: topPick.cells });
+            }
+          }
+
+          if (success) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (const key of occupied) {
+              const [ox, oy] = key.split(',').map(Number);
+              if (ox < minX) minX = ox; if (oy < minY) minY = oy;
+              if (ox > maxX) maxX = ox; if (oy > maxY) maxY = oy;
+            }
+            const targetCells = Array.from(occupied).map((k) => {
+              const [ox, oy] = k.split(',').map(Number);
+              return [ox - minX, oy - minY];
+            });
+            const solution = rawPlacements.map((pl) => {
+              const normCells = pl.cells.map(([cx, cy]) => [cx - minX, cy - minY]);
+              return {
+                pieceId: pl.pieceId,
+                gridX: Math.min(...normCells.map((c) => c[0])),
+                gridY: Math.min(...normCells.map((c) => c[1])),
+                rotation: pl.rotation,
+                flipped: pl.flipped,
+                cells: normCells
+              };
+            });
+            return {
+              boardWidth: maxX - minX + 1,
+              boardHeight: maxY - minY + 1,
+              targetCells,
+              pieces: seededShuffle(chosenPieces, rng).map((p) => ({
+                ...p,
+                initialRotation: Math.floor(rng() * 4),
+                initialFlipped: rng() < 0.5
+              })),
+              solution
+            };
+          }
+        }
+      }
+
+      class SoundManager {
+        constructor() {
+          this.ctx = null;
+          this.muted = false;
+        }
+        init() {
+          if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        }
+        vibrate(p) {
+          if (!this.muted && navigator.vibrate) {
+            try { navigator.vibrate(p); } catch (_) {}
+          }
+        }
+        playTone(freq, type = 'sine', duration = 0.08, gainVal = 0.14, slideFreq = null) {
+          if (this.muted) return;
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          if (slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, now + duration);
+          gain.gain.setValueAtTime(gainVal, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + duration);
+        }
+        pickup() { this.playTone(320, 'triangle', 0.06, 0.12, 460); this.vibrate(10); }
+        rotate() { this.playTone(540, 'sine', 0.06, 0.12, 680); this.vibrate(12); }
+        flip() { this.playTone(440, 'triangle', 0.08, 0.14, 320); this.vibrate([10, 20, 10]); }
+        place() { this.playTone(280, 'triangle', 0.09, 0.18, 420); this.vibrate(18); }
+        invalid() { this.playTone(170, 'sawtooth', 0.14, 0.12, 120); this.vibrate([25, 30, 25]); }
+        tick(urgent) { this.playTone(urgent ? 880 : 620, 'sine', 0.035, urgent ? 0.14 : 0.06); }
+        ubongoFanfare() {
+          if (this.muted) return;
+          this.init();
+          this.vibrate([40, 50, 80, 50, 140]);
+          [523.25, 659.25, 783.99, 1046.5].forEach((n, idx) => {
+            setTimeout(() => this.playTone(n, 'triangle', idx === 3 ? 0.35 : 0.14, 0.22), idx * 95);
+          });
+        }
+        timeUp() {
+          if (this.muted) return;
+          this.init();
+          this.vibrate([80, 60, 120]);
+          [392.0, 349.23, 311.13, 261.63].forEach((n, idx) => {
+            setTimeout(() => this.playTone(n, 'sawtooth', 0.18, 0.14), idx * 110);
+          });
+        }
+      }
+
+      const sound = new SoundManager();
+      const PEER_PREFIX = 'ubongo-p2p-v2-';
+
+      class UbongoNetwork {
+        constructor(callbacks = {}) {
+          this.callbacks = callbacks;
+          this.playerId = 'p_' + Math.random().toString(36).substring(2, 9);
+          this.playerName = localStorage.getItem('ubongo_player_name') || 'Robin';
+          const storedAvatar = localStorage.getItem('ubongo_player_avatar');
+          this.playerAvatar = EMBLEMS.some((e) => e.id === storedAvatar) ? storedAvatar : 'lion';
+          this.isHost = true;
+          this.roomCode = null;
+          this.peer = null;
+          this.connections = new Map();
+          this.bc = null;
+          this.seenMessageIds = new Set();
+        }
+
+        setProfile(name, avatar) {
+          if (name && name.trim()) {
+            this.playerName = name.trim().slice(0, 18);
+            try { localStorage.setItem('ubongo_player_name', this.playerName); } catch (_) {}
+          }
+          if (avatar) {
+            this.playerAvatar = avatar;
+            try { localStorage.setItem('ubongo_player_avatar', this.playerAvatar); } catch (_) {}
+          }
+        }
+
+        generateRoomCode() {
+          const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+          let code = '';
+          for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+          return code;
+        }
+
+        getShareableInviteURL() {
+          if (!this.roomCode) return PUBLIC_PAGES_BASE_URL;
+          const isLocalOrApk =
+            window.location.protocol === 'file:' ||
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1';
+          const base = isLocalOrApk
+            ? PUBLIC_PAGES_BASE_URL
+            : `${window.location.origin}${window.location.pathname}`;
+          return `${base}?room=${this.roomCode}`;
+        }
+
+        setupBroadcastChannel(roomCode) {
+          if (this.bc) this.bc.close();
+          if (typeof BroadcastChannel !== 'undefined') {
+            this.bc = new BroadcastChannel(`ubongo_room_${roomCode}`);
+            this.bc.onmessage = (ev) => {
+              if (ev.data && ev.data.senderId !== this.playerId) this.handleIncomingPacket(ev.data);
+            };
+          }
+        }
+
+        async createRoom(customCode = null) {
+          this.disconnect();
+          this.isHost = true;
+          this.roomCode = (customCode || this.generateRoomCode()).toUpperCase();
+          this.setupBroadcastChannel(this.roomCode);
+
+          if (typeof window.Peer !== 'undefined') {
+            try {
+              const peerId = `${PEER_PREFIX}${this.roomCode}`;
+              this.peer = new window.Peer(peerId, {
+                config: {
+                  iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                  ]
+                }
+              });
+              this.peer.on('open', () => this.emitStatus('WebRTC P2P Online'));
+              this.peer.on('connection', (conn) => this.registerPeerConnection(conn));
+              this.peer.on('error', (err) => {
+                if (err.type === 'unavailable-id') this.createRoom(this.generateRoomCode());
+                else this.emitStatus('P2P Direkt');
+              });
+            } catch (_) {}
+          }
+          return this.roomCode;
+        }
+
+        async joinRoom(roomCode) {
+          this.disconnect();
+          this.isHost = false;
+          this.roomCode = roomCode.trim().toUpperCase();
+          this.setupBroadcastChannel(this.roomCode);
+          this.sendPacket({ type: 'PLAYER_JOIN', player: this.getSelfInfo() });
+
+          if (typeof window.Peer !== 'undefined') {
+            try {
+              this.peer = new window.Peer({
+                config: {
+                  iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' }
+                  ]
+                }
+              });
+              this.peer.on('open', () => {
+                const conn = this.peer.connect(`${PEER_PREFIX}${this.roomCode}`, { reliable: true });
+                this.registerPeerConnection(conn);
+              });
+            } catch (_) {}
+          }
+          return this.roomCode;
+        }
+
+        registerPeerConnection(conn) {
+          conn.on('open', () => {
+            this.connections.set(conn.peer, conn);
+            this.emitStatus('WebRTC Verbunden');
+            conn.send(this.wrapPacket({ type: 'PLAYER_JOIN', player: this.getSelfInfo() }));
+          });
+          conn.on('data', (data) => this.handleIncomingPacket(data, conn));
+          conn.on('close', () => this.connections.delete(conn.peer));
+        }
+
+        wrapPacket(payload) {
+          const msgId = `${this.playerId}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+          this.seenMessageIds.add(msgId);
+          return { ...payload, msgId, senderId: this.playerId, roomCode: this.roomCode, timestamp: Date.now() };
+        }
+
+        sendPacket(payload) {
+          const packet = payload.msgId ? payload : this.wrapPacket(payload);
+          for (const conn of this.connections.values()) {
+            if (conn.open) { try { conn.send(packet); } catch (_) {} }
+          }
+          if (this.bc) {
+            try { this.bc.postMessage(packet); } catch (_) {}
+          }
+        }
+
+        handleIncomingPacket(packet, sourceConn = null) {
+          if (!packet || !packet.msgId || this.seenMessageIds.has(packet.msgId)) return;
+          this.seenMessageIds.add(packet.msgId);
+          if (this.isHost && this.connections.size > 1) {
+            for (const conn of this.connections.values()) {
+              if (conn !== sourceConn && conn.open) { try { conn.send(packet); } catch (_) {} }
+            }
+          }
+          if (this.callbacks.onPacket) this.callbacks.onPacket(packet);
+        }
+
+        getSelfInfo() {
+          return { id: this.playerId, name: this.playerName, avatar: this.playerAvatar, isHost: this.isHost };
+        }
+
+        emitStatus(statusText) {
+          if (this.callbacks.onStatus) this.callbacks.onStatus(statusText);
+        }
+
+        disconnect() {
+          for (const conn of this.connections.values()) { try { conn.close(); } catch (_) {} }
+          this.connections.clear();
+          if (this.peer) { try { this.peer.destroy(); } catch (_) {} this.peer = null; }
+          if (this.bc) { try { this.bc.close(); } catch (_) {} this.bc = null; }
+        }
+      }
+
+      class UbongoApp {
+        constructor() {
+          this.isSolo = true;
+          this.settings = {
+            difficulty: 4,
+            timeLimit: 60,
+            totalRounds: 5,
+            matchSeed: 'UBG-2026'
+          };
+          this.players = new Map();
+          this.currentRound = 1;
+          this.puzzle = null;
+          this.timeLeft = 60;
+          this.timerInterval = null;
+          this.roundStartTime = 0;
+          this.roundFinished = false;
+          this.finishOrder = [];
+          this.pieceStates = new Map();
+          this.selectedPieceId = null;
+          this.dragState = null;
+          this.botInterval = null;
+
+          // Multi-Touch & Double-Tap Gesture Tracking
+          this.lastTapTime = 0;
+          this.lastTapPieceId = null;
+          this.activePointers = new Map();
+          this.twoFingerGesture = null;
+
+          this.net = new UbongoNetwork({
+            onPacket: (packet) => this.onNetworkPacket(packet),
+            onStatus: (statusText) => {
+              const el = document.getElementById('net-status-pill');
+              if (el) el.textContent = statusText;
+            }
+          });
+
+          this.initDOM();
+          this.renderOriginalCatalogStrip();
+          this.bootImmediateTable();
+          this.checkURLRoomInvite();
+        }
+
+        initDOM() {
+          const nameInput = document.getElementById('player-name-input');
+          if (nameInput) {
+            nameInput.value = this.net.playerName;
+            nameInput.addEventListener('input', (e) => {
+              this.net.setProfile(e.target.value, this.net.playerAvatar);
+              const self = this.players.get(this.net.playerId);
+              if (self) {
+                self.name = this.net.playerName;
+                this.renderLiveOpponentsBar();
+              }
+            });
+          }
+
+          document.getElementById('btn-new-board')?.addEventListener('click', () => {
+            sound.init();
+            this.settings.matchSeed = 'UBG-' + Math.floor(10000 + Math.random() * 89999);
+            if (!this.isSolo && this.net.isHost) {
+              this.hostStartMatch();
+            } else {
+              this.startRound(this.currentRound);
+            }
+          });
+
+          document.getElementById('btn-create-room')?.addEventListener('click', () => {
+            sound.init();
+            this.createOnlineRoom();
+          });
+
+          document.getElementById('btn-share-link')?.addEventListener('click', () => {
+            this.shareRoomInvite();
+          });
+
+          document.getElementById('btn-join-room')?.addEventListener('click', () => {
+            sound.init();
+            const input = document.getElementById('join-code-input');
+            const code = input ? input.value.trim().toUpperCase() : '';
+            if (!code || code.length < 3) {
+              this.showToast('Bitte 4-stelligen Raum-Code eingeben');
+              return;
+            }
+            this.joinOnlineRoom(code);
+          });
+
+          document.getElementById('btn-add-bot')?.addEventListener('click', () => {
+            sound.init();
+            this.addBotPlayer();
+          });
+
+          document.getElementById('btn-start-match')?.addEventListener('click', () => {
+            sound.init();
+            if (this.net.isHost) this.hostStartMatch();
+          });
+
+          document.querySelectorAll('[data-difficulty]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              if (!this.isSolo && !this.net.isHost) return;
+              this.settings.difficulty = Number(btn.dataset.difficulty);
+              this.updateSettingsUI();
+              this.broadcastLobbyState();
+              this.startRound(this.currentRound);
+            });
+          });
+
+          document.querySelectorAll('[data-timelimit]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              if (!this.isSolo && !this.net.isHost) return;
+              this.settings.timeLimit = Number(btn.dataset.timelimit);
+              this.updateSettingsUI();
+              this.broadcastLobbyState();
+              this.startRound(this.currentRound);
+            });
+          });
+
+          document.getElementById('btn-rotate-piece')?.addEventListener('click', () => this.rotateSelectedPiece(1, true));
+          document.getElementById('btn-flip-piece')?.addEventListener('click', () => this.flipSelectedPiece(true));
+          document.getElementById('btn-remove-piece')?.addEventListener('click', () => this.returnSelectedPieceToTray());
+          document.getElementById('btn-clear-board')?.addEventListener('click', () => this.clearAllPiecesFromBoard());
+          document.getElementById('btn-hint-piece')?.addEventListener('click', () => this.applyHintPiece());
+          document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
+            sound.muted = !sound.muted;
+            const btn = document.getElementById('btn-sound-toggle');
+            if (btn) btn.style.opacity = sound.muted ? '0.45' : '1';
+          });
+
+          document.getElementById('btn-next-round')?.addEventListener('click', () => {
+            if (this.isSolo || this.net.isHost) this.triggerNextRound();
+          });
+
+          // Global Multi-Touch & Pointer Listeners for Drag, Double-Tap (Flip) & 2-Finger (Rotate)
+          window.addEventListener('pointerdown', (e) => this.onGlobalPointerDown(e), { passive: false });
+          window.addEventListener('pointermove', (e) => this.onGlobalPointerMove(e), { passive: false });
+          window.addEventListener('pointerup', (e) => this.onGlobalPointerUp(e));
+          window.addEventListener('pointercancel', (e) => this.onGlobalPointerUp(e));
+
+          // Desktop right-click rotates 90 degrees
+          window.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.ivory-well-frame') || e.target.closest('.piece-tray')) {
+              e.preventDefault();
+              this.rotateSelectedPiece(1, true);
+            }
+          });
+
+          window.addEventListener('keydown', (e) => {
+            if (this.roundFinished || e.target.tagName === 'INPUT') return;
+            if (e.key === 'r' || e.key === 'R') { e.preventDefault(); this.rotateSelectedPiece(1, true); }
+            else if (e.key === 'f' || e.key === 'F' || e.key === ' ') { e.preventDefault(); this.flipSelectedPiece(true); }
+            else if (e.key === 'Backspace' || e.key === 'Escape') { this.returnSelectedPieceToTray(); }
+          });
+
+          window.handleOpenURL = (urlStr) => {
+            try {
+              const u = new URL(urlStr);
+              const code = u.searchParams.get('room');
+              if (code) this.joinOnlineRoom(code.toUpperCase());
+            } catch (_) {}
+          };
+
+          this.updateSettingsUI();
+        }
+
+        bootImmediateTable() {
+          this.players.clear();
+          const self = this.net.getSelfInfo();
+          self.isHost = true;
+          this.players.set(self.id, this.resetPlayerEntry(self));
+          this.players.set('bot_tiki', {
+            id: 'bot_tiki',
+            name: 'Savannen-Fuchs',
+            avatar: 'falcon',
+            isHost: false,
+            isBot: true,
+            score: 3,
+            gems: [GEM_TIERS[1]],
+            placedCount: 2,
+            placedColors: ['#dc2626', '#0284c7'],
+            totalPieces: this.settings.difficulty,
+            solvedTime: null,
+            solvedRank: null
+          });
+          this.startRound(1, true);
+        }
+
+        renderOriginalCatalogStrip() {
+          const strip = document.getElementById('piece-catalog-strip');
+          if (!strip) return;
+          strip.innerHTML = '';
+          for (const piece of UBONGO_PIECES) {
+            const chip = document.createElement('div');
+            chip.className = 'catalog-chip';
+            chip.title = `${piece.name} (${piece.squares} Felder)`;
+
+            const coords = normalizeCoords(piece.coords);
+            const { width, height } = getBounds(coords);
+            const set = new Set(coords.map(([x, y]) => `${x},${y}`));
+
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gap = '1.5px';
+            grid.style.gridTemplateColumns = `repeat(${width}, 7px)`;
+            grid.style.gridTemplateRows = `repeat(${height}, 7px)`;
+            grid.style.margin = 'auto 0';
+
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                const sq = document.createElement('div');
+                sq.style.width = '7px';
+                sq.style.height = '7px';
+                sq.style.borderRadius = '1.5px';
+                if (set.has(`${x},${y}`)) {
+                  sq.style.backgroundColor = piece.color;
+                }
+                grid.appendChild(sq);
+              }
+            }
+
+            const code = document.createElement('span');
+            code.className = 'catalog-code';
+            code.textContent = piece.id;
+
+            chip.append(grid, code);
+            strip.appendChild(chip);
+          }
+        }
+
+        updateSettingsUI() {
+          document.querySelectorAll('[data-difficulty]').forEach((btn) => {
+            btn.classList.toggle('active', Number(btn.dataset.difficulty) === this.settings.difficulty);
+          });
+          document.querySelectorAll('[data-timelimit]').forEach((btn) => {
+            btn.classList.toggle('active', Number(btn.dataset.timelimit) === this.settings.timeLimit);
+          });
+        }
+
+        checkURLRoomInvite() {
+          const params = new URLSearchParams(window.location.search);
+          let roomParam = params.get('room');
+          if (!roomParam && window.location.hash.includes('room=')) {
+            const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            roomParam = hashParams.get('room');
+          }
+          if (roomParam && roomParam.trim().length >= 3) {
+            const cleanCode = roomParam.trim().toUpperCase();
+            const input = document.getElementById('join-code-input');
+            if (input) input.value = cleanCode;
+            setTimeout(() => this.joinOnlineRoom(cleanCode), 250);
+          }
+        }
+
+        resetPlayerEntry(info) {
+          return {
+            id: info.id,
+            name: info.name,
+            avatar: info.avatar || 'lion',
+            isHost: Boolean(info.isHost),
+            isBot: Boolean(info.isBot),
+            score: info.score || 0,
+            gems: info.gems || [],
+            placedCount: 0,
+            placedColors: [],
+            totalPieces: this.settings.difficulty,
+            solvedTime: null,
+            solvedRank: null
+          };
+        }
+
+        async createOnlineRoom() {
+          this.isSolo = false;
+          this.players.clear();
+          const code = await this.net.createRoom();
+          const self = this.net.getSelfInfo();
+          this.players.set(self.id, this.resetPlayerEntry(self));
+
+          document.getElementById('lobby-room-code').textContent = code;
+          document.getElementById('btn-share-link').style.display = 'inline-flex';
+          document.getElementById('btn-start-match').style.display = 'inline-flex';
+          this.renderLiveOpponentsBar();
+          this.copyRoomInvite(true);
+        }
+
+        async joinOnlineRoom(code) {
+          this.isSolo = false;
+          this.players.clear();
+          const cleanCode = await this.net.joinRoom(code);
+          const self = this.net.getSelfInfo();
+          this.players.set(self.id, this.resetPlayerEntry(self));
+
+          document.getElementById('lobby-room-code').textContent = cleanCode;
+          document.getElementById('btn-share-link').style.display = 'inline-flex';
+          document.getElementById('btn-start-match').style.display = 'none';
+          this.renderLiveOpponentsBar();
+          this.showToast(`Verbunden mit P2P-Lobby ${cleanCode}`);
+        }
+
+        addBotPlayer() {
+          const botNames = ['Tiki-Meister (KI)', 'Zulu-Sprinter (KI)', 'Kilimandscharo (KI)'];
+          const botEmblems = ['cobra', 'scarab', 'falcon'];
+          const idx = this.players.size % botNames.length;
+          const botId = 'bot_' + Math.random().toString(36).slice(2, 7);
+          this.players.set(botId, this.resetPlayerEntry({
+            id: botId,
+            name: botNames[idx],
+            avatar: botEmblems[idx],
+            isHost: false,
+            isBot: true
+          }));
+          this.renderLiveOpponentsBar();
+          this.broadcastLobbyState();
+          this.showToast(`${botNames[idx]} hinzugefügt`);
+        }
+
+        broadcastLobbyState() {
+          if (!this.net.isHost || this.isSolo) return;
+          this.net.sendPacket({
+            type: 'LOBBY_SYNC',
+            settings: this.settings,
+            players: Array.from(this.players.values())
+          });
+        }
+
+        onNetworkPacket(packet) {
+          switch (packet.type) {
+            case 'PLAYER_JOIN': {
+              if (packet.player && packet.player.id) {
+                if (!this.players.has(packet.player.id)) {
+                  this.players.set(packet.player.id, this.resetPlayerEntry(packet.player));
+                  this.showToast(`${packet.player.name} ist beigetreten`);
+                }
+                this.renderLiveOpponentsBar();
+                if (this.net.isHost) this.broadcastLobbyState();
+              }
+              break;
+            }
+            case 'LOBBY_SYNC': {
+              if (!this.net.isHost) {
+                if (packet.settings) {
+                  this.settings = { ...this.settings, ...packet.settings };
+                  this.updateSettingsUI();
+                }
+                if (Array.isArray(packet.players)) {
+                  this.players.clear();
+                  for (const p of packet.players) this.players.set(p.id, p);
+                  if (!this.players.has(this.net.playerId)) {
+                    this.players.set(this.net.playerId, this.resetPlayerEntry(this.net.getSelfInfo()));
+                  }
+                  this.renderLiveOpponentsBar();
+                }
+              }
+              break;
+            }
+            case 'START_ROUND': {
+              if (packet.settings) this.settings = { ...this.settings, ...packet.settings };
+              if (Array.isArray(packet.players)) {
+                this.players.clear();
+                for (const p of packet.players) this.players.set(p.id, p);
+              }
+              this.startRound(packet.roundNumber || 1);
+              break;
+            }
+            case 'PLAYER_PROGRESS': {
+              const p = this.players.get(packet.playerId);
+              if (p) {
+                p.placedCount = packet.placedCount;
+                p.placedColors = packet.placedColors || [];
+                p.totalPieces = packet.totalPieces;
+                this.renderLiveOpponentsBar();
+              }
+              break;
+            }
+            case 'PLAYER_UBONGO': {
+              this.recordPlayerSolved(packet.playerId, packet.solvedTime);
+              break;
+            }
+            case 'ROUND_END_SYNC': {
+              if (!this.net.isHost && !this.roundFinished) this.finishRound();
+              break;
+            }
+          }
+        }
+
+        hostStartMatch() {
+          this.settings.matchSeed = 'MATCH-' + Math.floor(100000 + Math.random() * 899999);
+          for (const p of this.players.values()) { p.score = 0; p.gems = []; }
+          this.currentRound = 1;
+          this.net.sendPacket({
+            type: 'START_ROUND',
+            roundNumber: 1,
+            settings: this.settings,
+            players: Array.from(this.players.values())
+          });
+          this.startRound(1);
+        }
+
+        startRound(roundNumber, isInitialBoot = false) {
+          this.stopTimers();
+          this.currentRound = roundNumber;
+          this.roundFinished = false;
+          this.finishOrder = [];
+          document.getElementById('round-summary-banner')?.classList.remove('active');
+
+          this.puzzle = generateUbongoPuzzle(this.settings.matchSeed, this.currentRound, this.settings.difficulty);
+
+          for (const p of this.players.values()) {
+            if (isInitialBoot && p.isBot) {
+              p.placedCount = Math.min(2, this.puzzle.pieces.length - 1);
+              p.placedColors = this.puzzle.pieces.slice(0, p.placedCount).map((pc) => pc.color);
+            } else {
+              p.placedCount = 0;
+              p.placedColors = [];
+            }
+            p.totalPieces = this.puzzle.pieces.length;
+            p.solvedTime = null;
+            p.solvedRank = null;
+          }
+
+          this.pieceStates.clear();
+          for (const piece of this.puzzle.pieces) {
+            this.pieceStates.set(piece.id, {
+              piece,
+              rotation: piece.initialRotation || 0,
+              flipped: Boolean(piece.initialFlipped),
+              placed: false,
+              gridX: null,
+              gridY: null
+            });
+          }
+
+          // Pre-place 1 piece on initial boot so the ivory board well & Saville hue strip immediately show live tile engagement
+          if (isInitialBoot && this.puzzle.solution && this.puzzle.solution.length > 0) {
+            const firstSol = this.puzzle.solution[0];
+            const firstSt = this.pieceStates.get(firstSol.pieceId);
+            if (firstSt) {
+              firstSt.rotation = firstSol.rotation;
+              firstSt.flipped = firstSol.flipped;
+              firstSt.placed = true;
+              firstSt.gridX = firstSol.gridX;
+              firstSt.gridY = firstSol.gridY;
+              const self = this.players.get(this.net.playerId);
+              if (self) {
+                self.placedCount = 1;
+                self.placedColors = [firstSt.piece.color];
+              }
+            }
+          }
+
+          const firstUnplaced = Array.from(this.pieceStates.values()).find((s) => !s.placed);
+          this.selectedPieceId = firstUnplaced ? firstUnplaced.piece.id : (this.puzzle.pieces[0]?.id || null);
+          const roundBadge = document.getElementById('game-round-badge');
+          if (roundBadge) {
+            roundBadge.textContent = window.innerWidth < 500
+              ? `Runde ${this.currentRound}/${this.settings.totalRounds}`
+              : `Runde ${this.currentRound}/${this.settings.totalRounds} · ${this.puzzle.pieces.length} Steine`;
+          }
+
+          this.renderBoard();
+          this.renderPieceTray();
+          this.renderLiveOpponentsBar();
+
+          this.timeLeft = this.settings.timeLimit;
+          this.roundStartTime = performance.now();
+          this.updateHourglassUI();
+
+          this.timerInterval = setInterval(() => {
+            const elapsedSec = Math.floor((performance.now() - this.roundStartTime) / 1000);
+            this.timeLeft = Math.max(0, this.settings.timeLimit - elapsedSec);
+            this.updateHourglassUI();
+            if (this.timeLeft <= 10 && this.timeLeft > 0) sound.tick(this.timeLeft <= 5);
+            if (this.timeLeft <= 0) this.onHourglassExpired();
+          }, 250);
+
+          if (this.net.isHost || this.isSolo) this.startBotSimulation();
+        }
+
+        stopTimers() {
+          if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+          if (this.botInterval) { clearInterval(this.botInterval); this.botInterval = null; }
+        }
+
+        startBotSimulation() {
+          const bots = Array.from(this.players.values()).filter((p) => p.isBot);
+          if (!bots.length) return;
+          this.botInterval = setInterval(() => {
+            if (this.roundFinished) return;
+            for (const bot of bots) {
+              if (bot.solvedTime !== null) continue;
+              if (Math.random() < 0.25) {
+                bot.placedCount = Math.min(bot.totalPieces, bot.placedCount + 1);
+                bot.placedColors = this.puzzle.pieces.slice(0, bot.placedCount).map((pc) => pc.color);
+                if (!this.isSolo) {
+                  this.net.sendPacket({
+                    type: 'PLAYER_PROGRESS',
+                    playerId: bot.id,
+                    placedCount: bot.placedCount,
+                    placedColors: bot.placedColors,
+                    totalPieces: bot.totalPieces
+                  });
+                }
+                this.renderLiveOpponentsBar();
+                if (bot.placedCount >= bot.totalPieces) {
+                  const elapsed = Number(((performance.now() - this.roundStartTime) / 1000).toFixed(1));
+                  if (!this.isSolo) {
+                    this.net.sendPacket({ type: 'PLAYER_UBONGO', playerId: bot.id, solvedTime: elapsed });
+                  }
+                  this.recordPlayerSolved(bot.id, elapsed);
+                }
+              }
+            }
+          }, 3200);
+        }
+
+        updateHourglassUI() {
+          const ratio = Math.max(0, Math.min(1, this.timeLeft / this.settings.timeLimit));
+          const topSand = document.getElementById('hourglass-sand-top');
+          const bottomSand = document.getElementById('hourglass-sand-bottom');
+          const stream = document.getElementById('hourglass-stream');
+          const timeText = document.getElementById('hourglass-time-text');
+          const hgWrapper = document.getElementById('hourglass-wrapper');
+
+          if (topSand) topSand.setAttribute('transform', `translate(0, ${(1 - ratio) * 42}) scale(1, ${ratio})`);
+          if (bottomSand) {
+            const fillRatio = 1 - ratio;
+            bottomSand.setAttribute('transform', `translate(0, ${44 * (1 - fillRatio)}) scale(1, ${fillRatio})`);
+          }
+          if (stream) stream.style.opacity = this.timeLeft > 0 && !this.roundFinished ? '1' : '0';
+          if (timeText) timeText.textContent = `${this.timeLeft}s`;
+          if (hgWrapper) hgWrapper.classList.toggle('urgent', this.timeLeft <= 10 && this.timeLeft > 0);
+        }
+
+        renderLiveOpponentsBar() {
+          const bar = document.getElementById('live-opponents-bar');
+          if (!bar) return;
+          bar.innerHTML = '';
+
+          const liveRanked = Array.from(this.players.values()).sort((a, b) => {
+            if (a.solvedRank !== null && b.solvedRank !== null) return a.solvedRank - b.solvedRank;
+            if (a.solvedRank !== null) return -1;
+            if (b.solvedRank !== null) return 1;
+            if (b.placedCount !== a.placedCount) return b.placedCount - a.placedCount;
+            return b.score - a.score;
+          });
+
+          liveRanked.forEach((p, idx) => {
+            const row = document.createElement('div');
+            row.className = `gate-row ${p.solvedTime !== null ? 'solved-flash' : ''}`;
+
+            const total = p.totalPieces || this.settings.difficulty;
+            const colors = p.placedColors || [];
+            let hueBlocksHTML = '';
+            for (let i = 0; i < total; i++) {
+              const col = colors[i];
+              if (col || i < p.placedCount) {
+                const fillCol = col || (this.puzzle?.pieces[i]?.color || '#f59e0b');
+                hueBlocksHTML += `<span class="hue-block active-hue" style="background:${fillCol};"></span>`;
+              } else {
+                hueBlocksHTML += `<span class="hue-block"></span>`;
+              }
+            }
+
+            row.innerHTML = `
+              <div class="gate-player-meta">
+                <span class="gate-rank-num">#${idx + 1}</span>
+                <span class="gate-emblem">${getEmblemSVG(p.avatar)}</span>
+                <span class="gate-name">${this.escapeHTML(p.name)}</span>
+              </div>
+              <div class="hue-code-strip" title="${p.placedCount} von ${total} Steinen platziert">
+                ${hueBlocksHTML}
+              </div>
+              <div class="gate-score-pill">
+                ${p.solvedTime !== null ? `UBONGO ${p.solvedTime}s` : `${p.score} Pkt`}
+              </div>
+            `;
+            bar.appendChild(row);
+          });
+        }
+
+        getPlacedCellsMap(excludePieceId = null) {
+          const cellMap = new Map();
+          for (const st of this.pieceStates.values()) {
+            if (!st.placed || st.piece.id === excludePieceId) continue;
+            const coords = transformCoords(st.piece.coords, st.rotation, st.flipped);
+            for (const [dx, dy] of coords) cellMap.set(`${st.gridX + dx},${st.gridY + dy}`, st);
+          }
+          return cellMap;
+        }
+
+        canPlacePieceAt(pieceId, gridX, gridY) {
+          const st = this.pieceStates.get(pieceId);
+          if (!st || !this.puzzle) return false;
+          const targetSet = new Set(this.puzzle.targetCells.map(([x, y]) => `${x},${y}`));
+          const occupiedMap = this.getPlacedCellsMap(pieceId);
+          const coords = transformCoords(st.piece.coords, st.rotation, st.flipped);
+          for (const [dx, dy] of coords) {
+            const key = `${gridX + dx},${gridY + dy}`;
+            if (!targetSet.has(key) || occupiedMap.has(key)) return false;
+          }
+          return true;
+        }
+
+        renderBoard() {
+          const boardEl = document.getElementById('ubongo-board');
+          if (!boardEl || !this.puzzle) return;
+          const { boardWidth, boardHeight, targetCells } = this.puzzle;
+          const targetSet = new Set(targetCells.map(([x, y]) => `${x},${y}`));
+          const occupiedMap = this.getPlacedCellsMap(this.dragState?.pieceId || null);
+
+          const ghostCells = new Set();
+          let ghostValid = false, ghostColor = '#ffffff';
+          if (this.dragState && this.dragState.hoverGridX !== null && this.dragState.hoverGridY !== null) {
+            const dragSt = this.pieceStates.get(this.dragState.pieceId);
+            if (dragSt) {
+              ghostColor = dragSt.piece.color;
+              ghostValid = this.canPlacePieceAt(this.dragState.pieceId, this.dragState.hoverGridX, this.dragState.hoverGridY);
+              const coords = transformCoords(dragSt.piece.coords, dragSt.rotation, dragSt.flipped);
+              for (const [dx, dy] of coords) ghostCells.add(`${this.dragState.hoverGridX + dx},${this.dragState.hoverGridY + dy}`);
+            }
+          }
+
+          const maxDim = Math.max(boardWidth, boardHeight);
+          const isCompactMobile = window.innerWidth < 500;
+          const cellSize = isCompactMobile
+            ? (maxDim <= 5 ? 34 : maxDim === 6 ? 30 : 26)
+            : (maxDim <= 5 ? 46 : maxDim === 6 ? 40 : 35);
+          boardEl.style.gridTemplateColumns = `repeat(${boardWidth}, ${cellSize}px)`;
+          boardEl.style.gridTemplateRows = `repeat(${boardHeight}, ${cellSize}px)`;
+          boardEl.innerHTML = '';
+
+          for (let y = 0; y < boardHeight; y++) {
+            for (let x = 0; x < boardWidth; x++) {
+              const key = `${x},${y}`;
+              const isTarget = targetSet.has(key);
+              const placedSt = occupiedMap.get(key);
+              const isGhost = ghostCells.has(key);
+
+              const cell = document.createElement('div');
+              cell.className = `board-cell ${isTarget ? 'cell-target' : 'cell-outside'}`;
+
+              if (placedSt) {
+                cell.classList.add('cell-filled');
+                cell.style.backgroundColor = placedSt.piece.color;
+                cell.style.borderColor = placedSt.piece.border;
+                if (this.selectedPieceId === placedSt.piece.id) cell.classList.add('cell-selected-piece');
+                cell.addEventListener('pointerdown', (e) => {
+                  if (this.roundFinished || e.button === 2) return;
+                  e.preventDefault();
+                  if (this.checkDoubleTapOnPiece(placedSt.piece.id)) return;
+                  this.selectedPieceId = placedSt.piece.id;
+                  this.startDraggingPiece(placedSt.piece.id, e, x - placedSt.gridX, y - placedSt.gridY);
+                });
+              } else if (isTarget) {
+                cell.addEventListener('click', () => {
+                  if (this.roundFinished || !this.selectedPieceId) return;
+                  this.tryTapPlaceOnBoard(this.selectedPieceId, x, y);
+                });
+              }
+
+              if (isGhost) {
+                cell.classList.add(ghostValid ? 'cell-ghost-valid' : 'cell-ghost-invalid');
+                if (ghostValid) cell.style.setProperty('--ghost-color', ghostColor);
+              }
+              boardEl.appendChild(cell);
+            }
+          }
+        }
+
+        tryTapPlaceOnBoard(pieceId, tapX, tapY) {
+          const st = this.pieceStates.get(pieceId);
+          if (!st) return;
+          if (this.canPlacePieceAt(pieceId, tapX, tapY)) {
+            this.placePieceOnBoard(pieceId, tapX, tapY);
+            return;
+          }
+          const coords = transformCoords(st.piece.coords, st.rotation, st.flipped);
+          for (const [dx, dy] of coords) {
+            if (this.canPlacePieceAt(pieceId, tapX - dx, tapY - dy)) {
+              this.placePieceOnBoard(pieceId, tapX - dx, tapY - dy);
+              return;
+            }
+          }
+          sound.invalid();
+        }
+
+        placePieceOnBoard(pieceId, gridX, gridY) {
+          const st = this.pieceStates.get(pieceId);
+          if (!st) return;
+          st.placed = true;
+          st.gridX = gridX;
+          st.gridY = gridY;
+          sound.place();
+          const nextUnplaced = Array.from(this.pieceStates.values()).find((p) => !p.placed);
+          if (nextUnplaced) this.selectedPieceId = nextUnplaced.piece.id;
+          this.renderBoard();
+          this.renderPieceTray();
+          this.broadcastLocalProgress();
+          this.checkIfPuzzleSolved();
+        }
+
+        renderPieceTray() {
+          const trayEl = document.getElementById('piece-tray');
+          if (!trayEl || !this.puzzle) return;
+          trayEl.innerHTML = '';
+          for (const st of this.pieceStates.values()) {
+            const item = document.createElement('div');
+            const isSelected = this.selectedPieceId === st.piece.id;
+            item.className = `tray-piece-card ${isSelected ? 'selected' : ''} ${st.placed ? 'placed' : ''}`;
+            item.dataset.pieceId = st.piece.id;
+
+            const header = document.createElement('div');
+            header.className = 'tray-piece-header';
+            header.innerHTML = `<span>${st.piece.id}</span><span>${st.flipped ? 'FLIP' : `${st.rotation * 90}°`}</span>`;
+
+            const coords = transformCoords(st.piece.coords, st.rotation, st.flipped);
+            const { width, height } = getBounds(coords);
+            const coordSet = new Set(coords.map(([x, y]) => `${x},${y}`));
+
+            const miniGrid = document.createElement('div');
+            miniGrid.className = 'mini-piece-grid';
+            const miniSqPx = window.innerWidth < 500 ? 12 : 18;
+            miniGrid.style.gridTemplateColumns = `repeat(${width}, ${miniSqPx}px)`;
+            miniGrid.style.gridTemplateRows = `repeat(${height}, ${miniSqPx}px)`;
+
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                const sq = document.createElement('div');
+                if (coordSet.has(`${x},${y}`)) {
+                  sq.className = 'mini-sq filled';
+                  sq.style.backgroundColor = st.piece.color;
+                  sq.style.borderColor = st.piece.border;
+                  sq.dataset.px = x;
+                  sq.dataset.py = y;
+                } else {
+                  sq.className = 'mini-sq empty';
+                }
+                miniGrid.appendChild(sq);
+              }
+            }
+
+            const label = document.createElement('div');
+            label.className = 'tray-piece-label';
+            label.textContent = st.placed ? 'Platziert' : st.piece.name;
+            item.append(header, miniGrid, label);
+
+            item.addEventListener('pointerdown', (e) => {
+              if (this.roundFinished || e.button === 2) return;
+              e.preventDefault();
+              if (this.checkDoubleTapOnPiece(st.piece.id)) return;
+              this.selectedPieceId = st.piece.id;
+              const targetSq = e.target.closest('[data-px]');
+              const grabX = targetSq ? Number(targetSq.dataset.px) : Math.floor(width / 2);
+              const grabY = targetSq ? Number(targetSq.dataset.py) : Math.floor(height / 2);
+              this.startDraggingPiece(st.piece.id, e, grabX, grabY);
+            });
+
+            trayEl.appendChild(item);
+          }
+        }
+
+        /* ===================================================================
+         * GESTURE ENGINE:
+         * - Doppeltipp (Double-Tap <= 320ms) = Spiegeln (Flip)
+         * - 2-Finger-Tipp / 2-Finger-Drehgeste = 90° Drehen (Rotate)
+         * =================================================================== */
+        checkDoubleTapOnPiece(pieceId) {
+          const now = performance.now();
+          if (this.lastTapPieceId === pieceId && (now - this.lastTapTime) < 320) {
+            this.lastTapTime = 0;
+            this.lastTapPieceId = null;
+            this.selectedPieceId = pieceId;
+            if (this.dragState) {
+              this.dragState = null;
+              this.renderFloatingDragPiece();
+            }
+            this.flipSelectedPiece(true);
+            return true;
+          }
+          this.lastTapTime = now;
+          this.lastTapPieceId = pieceId;
+          return false;
+        }
+
+        onGlobalPointerDown(e) {
+          if (this.roundFinished) return;
+          this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+          if (this.activePointers.size === 2) {
+            const pts = Array.from(this.activePointers.values());
+            const angle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+            this.twoFingerGesture = {
+              initialAngle: angle,
+              rotatedSteps: 0,
+              startTime: performance.now(),
+              didTwist: false
+            };
+
+            if (this.dragState) {
+              this.twoFingerGesture.didTwist = true;
+              this.rotateSelectedPiece(1, true);
+              this.renderFloatingDragPiece();
+            }
+          }
+        }
+
+        onGlobalPointerMove(e) {
+          if (this.activePointers.has(e.pointerId)) {
+            this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          }
+
+          if (this.activePointers.size === 2 && this.twoFingerGesture) {
+            e.preventDefault();
+            const pts = Array.from(this.activePointers.values());
+            const currentAngle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+            let delta = currentAngle - this.twoFingerGesture.initialAngle;
+            while (delta > Math.PI) delta -= 2 * Math.PI;
+            while (delta < -Math.PI) delta += 2 * Math.PI;
+
+            const stepRad = (34 * Math.PI) / 180;
+            const targetSteps = Math.trunc(delta / stepRad);
+            if (targetSteps !== this.twoFingerGesture.rotatedSteps) {
+              const diff = targetSteps - this.twoFingerGesture.rotatedSteps;
+              this.twoFingerGesture.rotatedSteps = targetSteps;
+              this.twoFingerGesture.didTwist = true;
+              this.rotateSelectedPiece(diff > 0 ? 1 : -1, true);
+              if (this.dragState) this.renderFloatingDragPiece();
+            }
+            return;
+          }
+
+          if (!this.dragState || e.pointerId !== this.dragState.pointerId) return;
+          e.preventDefault();
+          if (Math.hypot(e.clientX - this.dragState.startX, e.clientY - this.dragState.startY) > 7) {
+            this.dragState.movedSignificantly = true;
+          }
+          this.dragState.currentX = e.clientX;
+          this.dragState.currentY = e.clientY;
+          this.updateFloatingDragPosition();
+        }
+
+        onGlobalPointerUp(e) {
+          const hadTwoFingers = this.activePointers.size === 2;
+          this.activePointers.delete(e.pointerId);
+
+          if (hadTwoFingers && this.twoFingerGesture) {
+            const elapsed = performance.now() - this.twoFingerGesture.startTime;
+            if (!this.twoFingerGesture.didTwist && elapsed < 420) {
+              this.rotateSelectedPiece(1, true);
+            }
+            this.twoFingerGesture = null;
+          }
+
+          if (!this.dragState || e.pointerId !== this.dragState.pointerId) return;
+          const drag = this.dragState;
+          this.dragState = null;
+          this.renderFloatingDragPiece();
+
+          if (drag.movedSignificantly && drag.hoverGridX !== null && drag.hoverGridY !== null) {
+            if (this.canPlacePieceAt(drag.pieceId, drag.hoverGridX, drag.hoverGridY)) {
+              this.placePieceOnBoard(drag.pieceId, drag.hoverGridX, drag.hoverGridY);
+              return;
+            } else {
+              sound.invalid();
+            }
+          }
+          this.renderBoard();
+          this.renderPieceTray();
+        }
+
+        startDraggingPiece(pieceId, pointerEvent, grabOffsetX = 0, grabOffsetY = 0) {
+          const st = this.pieceStates.get(pieceId);
+          if (!st) return;
+          sound.pickup();
+          this.dragState = {
+            pieceId,
+            pointerId: pointerEvent.pointerId,
+            startX: pointerEvent.clientX,
+            startY: pointerEvent.clientY,
+            currentX: pointerEvent.clientX,
+            currentY: pointerEvent.clientY,
+            grabOffsetX,
+            grabOffsetY,
+            movedSignificantly: false,
+            hoverGridX: null,
+            hoverGridY: null
+          };
+          if (st.placed) {
+            st.placed = false;
+            st.gridX = null;
+            st.gridY = null;
+            this.broadcastLocalProgress();
+          }
+          this.renderFloatingDragPiece();
+          this.renderBoard();
+          this.renderPieceTray();
+        }
+
+        renderFloatingDragPiece() {
+          let floatEl = document.getElementById('floating-drag-piece');
+          if (!this.dragState) {
+            if (floatEl) floatEl.style.display = 'none';
+            return;
+          }
+          if (!floatEl) {
+            floatEl = document.createElement('div');
+            floatEl.id = 'floating-drag-piece';
+            document.body.appendChild(floatEl);
+          }
+          const st = this.pieceStates.get(this.dragState.pieceId);
+          const coords = transformCoords(st.piece.coords, st.rotation, st.flipped);
+          const { width, height } = getBounds(coords);
+          const coordSet = new Set(coords.map(([x, y]) => `${x},${y}`));
+          const maxDim = Math.max(this.puzzle.boardWidth, this.puzzle.boardHeight);
+          const cellSize = maxDim <= 5 ? 42 : maxDim === 6 ? 37 : 33;
+
+          floatEl.style.display = 'grid';
+          floatEl.style.gridTemplateColumns = `repeat(${width}, ${cellSize}px)`;
+          floatEl.style.gridTemplateRows = `repeat(${height}, ${cellSize}px)`;
+          floatEl.innerHTML = '';
+          for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+              const sq = document.createElement('div');
+              if (coordSet.has(`${x},${y}`)) {
+                sq.className = 'float-sq filled';
+                sq.style.backgroundColor = st.piece.color;
+                sq.style.borderColor = st.piece.border;
+              }
+              floatEl.appendChild(sq);
+            }
+          }
+          this.updateFloatingDragPosition();
+        }
+
+        updateFloatingDragPosition() {
+          const floatEl = document.getElementById('floating-drag-piece');
+          if (!floatEl || !this.dragState || !this.puzzle) return;
+          const maxDim = Math.max(this.puzzle.boardWidth, this.puzzle.boardHeight);
+          const cellSize = maxDim <= 5 ? 42 : maxDim === 6 ? 37 : 33;
+          const left = this.dragState.currentX - (this.dragState.grabOffsetX + 0.5) * cellSize;
+          const top = this.dragState.currentY - (this.dragState.grabOffsetY + 0.5) * cellSize - 24;
+          floatEl.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+
+          const boardEl = document.getElementById('ubongo-board');
+          if (boardEl) {
+            const rect = boardEl.getBoundingClientRect();
+            const gx = Math.floor((left + cellSize * 0.5 - rect.left) / (cellSize + 3));
+            const gy = Math.floor((top + cellSize * 0.5 - rect.top) / (cellSize + 3));
+            if (gx >= -2 && gx <= this.puzzle.boardWidth + 1 && gy >= -2 && gy <= this.puzzle.boardHeight + 1) {
+              if (this.dragState.hoverGridX !== gx || this.dragState.hoverGridY !== gy) {
+                this.dragState.hoverGridX = gx;
+                this.dragState.hoverGridY = gy;
+                this.renderBoard();
+              }
+            }
+          }
+        }
+
+        rotateSelectedPiece(stepDelta = 1, showFeedback = false) {
+          if (!this.selectedPieceId || this.roundFinished) return;
+          const st = this.pieceStates.get(this.selectedPieceId);
+          if (!st) return;
+          st.rotation = (((st.rotation + stepDelta) % 4) + 4) % 4;
+          if (st.placed && !this.canPlacePieceAt(st.piece.id, st.gridX, st.gridY)) st.placed = false;
+          sound.rotate();
+          this.renderBoard();
+          this.renderPieceTray();
+          this.broadcastLocalProgress();
+          this.checkIfPuzzleSolved();
+          if (showFeedback) {
+            this.pulsePieceCard(st.piece.id);
+          }
+        }
+
+        flipSelectedPiece(showFeedback = false) {
+          if (!this.selectedPieceId || this.roundFinished) return;
+          const st = this.pieceStates.get(this.selectedPieceId);
+          if (!st) return;
+          st.flipped = !st.flipped;
+          if (st.placed && !this.canPlacePieceAt(st.piece.id, st.gridX, st.gridY)) st.placed = false;
+          sound.flip();
+          this.renderBoard();
+          this.renderPieceTray();
+          this.broadcastLocalProgress();
+          this.checkIfPuzzleSolved();
+          if (showFeedback) {
+            this.pulsePieceCard(st.piece.id);
+            this.showToast(`${st.piece.name} gespiegelt`);
+          }
+        }
+
+        pulsePieceCard(pieceId) {
+          const card = document.querySelector(`.tray-piece-card[data-piece-id="${pieceId}"]`);
+          if (card) {
+            card.classList.remove('gesture-pulse');
+            void card.offsetWidth;
+            card.classList.add('gesture-pulse');
+          }
+        }
+
+        returnSelectedPieceToTray() {
+          if (!this.selectedPieceId || this.roundFinished) return;
+          const st = this.pieceStates.get(this.selectedPieceId);
+          if (!st || !st.placed) return;
+          st.placed = false;
+          sound.pickup();
+          this.renderBoard();
+          this.renderPieceTray();
+          this.broadcastLocalProgress();
+        }
+
+        clearAllPiecesFromBoard() {
+          if (this.roundFinished) return;
+          for (const st of this.pieceStates.values()) st.placed = false;
+          sound.pickup();
+          this.renderBoard();
+          this.renderPieceTray();
+          this.broadcastLocalProgress();
+        }
+
+        applyHintPiece() {
+          if (!this.puzzle || !this.puzzle.solution || this.roundFinished) return;
+          for (const sol of this.puzzle.solution) {
+            const st = this.pieceStates.get(sol.pieceId);
+            if (!st.placed || st.gridX !== sol.gridX || st.gridY !== sol.gridY) {
+              for (const other of this.pieceStates.values()) other.placed = false;
+              st.rotation = sol.rotation;
+              st.flipped = sol.flipped;
+              this.placePieceOnBoard(sol.pieceId, sol.gridX, sol.gridY);
+              this.showToast(`Tipp: ${st.piece.name} platziert`);
+              return;
+            }
+          }
+        }
+
+        broadcastLocalProgress() {
+          const placedStates = Array.from(this.pieceStates.values()).filter((s) => s.placed);
+          const placedCount = placedStates.length;
+          const placedColors = placedStates.map((s) => s.piece.color);
+          const totalPieces = this.pieceStates.size;
+          const self = this.players.get(this.net.playerId);
+          if (self) {
+            self.placedCount = placedCount;
+            self.placedColors = placedColors;
+            self.totalPieces = totalPieces;
+          }
+          this.renderLiveOpponentsBar();
+          if (!this.isSolo) {
+            this.net.sendPacket({
+              type: 'PLAYER_PROGRESS',
+              playerId: this.net.playerId,
+              placedCount,
+              placedColors,
+              totalPieces
+            });
+          }
+        }
+
+        checkIfPuzzleSolved() {
+          if (this.roundFinished || !this.puzzle) return;
+          for (const st of this.pieceStates.values()) if (!st.placed) return;
+          const occupiedMap = this.getPlacedCellsMap(null);
+          if (occupiedMap.size !== this.puzzle.targetCells.length) return;
+          const solvedTime = Number(((performance.now() - this.roundStartTime) / 1000).toFixed(1));
+          sound.ubongoFanfare();
+          this.triggerConfettiBurst();
+          if (!this.isSolo) {
+            this.net.sendPacket({ type: 'PLAYER_UBONGO', playerId: this.net.playerId, solvedTime });
+          }
+          this.recordPlayerSolved(this.net.playerId, solvedTime);
+        }
+
+        recordPlayerSolved(playerId, solvedTime) {
+          const p = this.players.get(playerId);
+          if (!p || p.solvedTime !== null) return;
+          p.placedCount = p.totalPieces;
+          p.solvedTime = solvedTime;
+          this.finishOrder.push(playerId);
+          const rank = this.finishOrder.length;
+          p.solvedRank = rank;
+          const gemTier = GEM_TIERS[Math.min(rank - 1, GEM_TIERS.length - 1)];
+          p.score += gemTier.points;
+          p.gems.push(gemTier);
+          this.showToast(`UBONGO! ${p.name} (${solvedTime}s) · +${gemTier.points} Pkt (${gemTier.name})`);
+          this.renderLiveOpponentsBar();
+          if (Array.from(this.players.values()).every((pl) => pl.solvedTime !== null)) {
+            setTimeout(() => this.finishRound(), 900);
+          }
+        }
+
+        onHourglassExpired() {
+          if (this.roundFinished) return;
+          sound.timeUp();
+          this.showToast('Die Sanduhr ist abgelaufen');
+          this.finishRound();
+        }
+
+        finishRound() {
+          if (this.roundFinished) return;
+          this.roundFinished = true;
+          this.stopTimers();
+          if (this.net.isHost && !this.isSolo) this.net.sendPacket({ type: 'ROUND_END_SYNC' });
+          this.renderRoundSummaryBanner();
+        }
+
+        renderRoundSummaryBanner() {
+          const banner = document.getElementById('round-summary-banner');
+          if (!banner) return;
+          banner.classList.add('active');
+          document.getElementById('summary-round-title').textContent =
+            this.currentRound >= this.settings.totalRounds
+              ? `Endstand nach ${this.settings.totalRounds} Runden`
+              : `Ergebnis Runde ${this.currentRound} von ${this.settings.totalRounds}`;
+
+          const tbody = document.getElementById('summary-standings-list');
+          tbody.innerHTML = '';
+          const sorted = Array.from(this.players.values()).sort((a, b) => b.score - a.score);
+          sorted.forEach((p, idx) => {
+            const row = document.createElement('div');
+            row.className = 'standing-row';
+            const roundResult = p.solvedTime !== null
+              ? `Platz ${p.solvedRank} (${p.solvedTime}s)`
+              : `Zeit abgelaufen (${p.placedCount}/${p.totalPieces})`;
+            row.innerHTML = `
+              <div class="st-rank">#${idx + 1}</div>
+              <div class="st-info">
+                <div class="st-name">${this.escapeHTML(p.name)}</div>
+                <div class="st-sub">${roundResult}</div>
+              </div>
+              <div class="st-score">${renderGemSVG('#f59e0b')} <span>${p.score} Pkt</span></div>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+
+        triggerNextRound() {
+          const nextRound = this.currentRound >= this.settings.totalRounds ? 1 : this.currentRound + 1;
+          if (!this.isSolo && this.net.isHost) {
+            this.net.sendPacket({
+              type: 'START_ROUND',
+              roundNumber: nextRound,
+              settings: this.settings,
+              players: Array.from(this.players.values())
+            });
+          }
+          this.startRound(nextRound);
+        }
+
+        shareRoomInvite() {
+          const url = this.net.getShareableInviteURL();
+          if (navigator.share) {
+            navigator.share({
+              title: 'UBONGO! Online Speed-Table',
+              text: `Komm in meine Ubongo-Lobby (Code: ${this.net.roomCode}):`,
+              url
+            }).catch(() => this.copyRoomInvite(true));
+          } else {
+            this.copyRoomInvite(true);
+          }
+        }
+
+        copyRoomInvite(asFullLink = false) {
+          if (!this.net.roomCode) return;
+          const text = asFullLink ? this.net.getShareableInviteURL() : this.net.roomCode;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+              this.showToast(asFullLink ? `P2P-Link (${this.net.roomCode}) kopiert` : `Raum-Code ${this.net.roomCode} kopiert`);
+            }).catch(() => this.showToast(`P2P-Code: ${this.net.roomCode}`));
+          } else {
+            this.showToast(`P2P-Code: ${this.net.roomCode}`);
+          }
+        }
+
+        showToast(message) {
+          const toast = document.getElementById('app-toast');
+          if (!toast) return;
+          toast.textContent = message;
+          toast.classList.add('visible');
+          clearTimeout(this.toastTimeout);
+          this.toastTimeout = setTimeout(() => toast.classList.remove('visible'), 2800);
+        }
+
+        triggerConfettiBurst() {
+          const container = document.getElementById('confetti-layer');
+          if (!container) return;
+          const colors = ['#dc2626', '#d97706', '#15803d', '#0284c7', '#7c3aed', '#eab308'];
+          for (let i = 0; i < 34; i++) {
+            const p = document.createElement('div');
+            p.className = 'confetti-particle';
+            p.style.left = `${15 + Math.random() * 70}%`;
+            p.style.backgroundColor = colors[i % colors.length];
+            p.style.setProperty('--dx', `${(Math.random() - 0.5) * 260}px`);
+            p.style.setProperty('--dy', `${-120 - Math.random() * 220}px`);
+            p.style.setProperty('--rot', `${Math.random() * 720}deg`);
+            container.appendChild(p);
+            setTimeout(() => p.remove(), 1150);
+          }
+        }
+
+        escapeHTML(str) {
+          return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+      }
+
+      window.ubongoApp = new UbongoApp();
+    })();
+  </script>
+</body>
+</html>
